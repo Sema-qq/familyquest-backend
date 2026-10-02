@@ -1,3 +1,8 @@
+.DS_Store
+.idea/
+other_projects/*
+build/
+
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
@@ -18,14 +23,14 @@ coverage.*
 profile.cov
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/*
 
 # Go workspace file
 go.work
 go.work.sum
 
 # env file
-.env
+#.env
 
 # Editor/IDE
 # .idea/

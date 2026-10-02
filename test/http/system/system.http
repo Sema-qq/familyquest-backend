@@ -1,0 +1,11 @@
+### Проверить hello API
+GET {{host}}/api/v1/hello
+Accept: application/json
+
+### Проверить, что сервис жив
+GET {{host}}/app/health
+Accept: application/json
+
+### Проверить готовность сервиса
+GET {{host}}/app/ready
+Accept: application/json
