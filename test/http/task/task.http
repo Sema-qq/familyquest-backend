@@ -1,0 +1,34 @@
+### Родитель создаёт задание
+POST {{host}}/api/v1/task/add
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Чтение",
+  "description": "Каждый день по 30 минут",
+  "points": 10
+}
+
+### Родитель создаёт задание без описания
+POST {{host}}/api/v1/task/add
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Утренняя зарядка",
+  "points": 5
+}
+
+### Ребёнок не может создать задание
+POST {{host}}/api/v1/task/add
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "title": "Сам себе задание",
+  "description": "",
+  "points": 1
+}

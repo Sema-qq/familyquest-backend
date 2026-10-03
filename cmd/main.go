@@ -8,6 +8,7 @@ import (
 
 	authcontroller "familyquest-backend/internal/api/http/controller/auth"
 	familycontroller "familyquest-backend/internal/api/http/controller/family"
+	taskcontroller "familyquest-backend/internal/api/http/controller/task"
 	usercontroller "familyquest-backend/internal/api/http/controller/user"
 	authmiddleware "familyquest-backend/internal/api/http/middleware/auth"
 	"familyquest-backend/internal/api/http/response"
@@ -15,12 +16,14 @@ import (
 	familyrepository "familyquest-backend/internal/repository/family"
 	familymemberrepository "familyquest-backend/internal/repository/familymember"
 	healthrepository "familyquest-backend/internal/repository/postgres/health"
+	taskrepository "familyquest-backend/internal/repository/task"
 	userrepository "familyquest-backend/internal/repository/user"
 	authlogin "familyquest-backend/internal/usecase/auth/login"
 	familycreate "familyquest-backend/internal/usecase/family/create"
 	familyget "familyquest-backend/internal/usecase/family/get"
 	familymembercreate "familyquest-backend/internal/usecase/family/membercreate"
 	familymemberlist "familyquest-backend/internal/usecase/family/memberlist"
+	taskadd "familyquest-backend/internal/usecase/task/add"
 	usercreate "familyquest-backend/internal/usecase/user/create"
 	userget "familyquest-backend/internal/usecase/user/get"
 	"familyquest-backend/pkg/db"
@@ -51,6 +54,7 @@ func main() {
 	userRepository := userrepository.NewRepository(txConn)
 	familyRepository := familyrepository.NewRepository(txConn)
 	familyMemberRepository := familymemberrepository.NewRepository(txConn)
+	taskRepository := taskrepository.NewRepository(txConn)
 	passwordHasher := password.NewHasher()
 	uuidGenerator := uuidprovider.New()
 	timeGenerator := timeprovider.New()
@@ -73,24 +77,25 @@ func main() {
 		uuidGenerator,
 	)
 	familyMemberListUC := familymemberlist.New(familyMemberRepository)
+	taskAddUC := taskadd.New(taskRepository, familyMemberRepository, uuidGenerator)
 
 	httpResponse := response.NewPublicResponder()
-	authValidator := authcontroller.NewRequestValidator()
-	authController := authcontroller.NewController(authValidator, httpResponse, userCreateUC, authLoginUC)
+	authController := authcontroller.NewController(authcontroller.NewRequestValidator(), httpResponse, userCreateUC, authLoginUC)
 	userController := usercontroller.NewController(httpResponse, userGetUC)
-	familyValidator := familycontroller.NewRequestValidator()
 	familyController := familycontroller.NewController(
-		familyValidator,
+		familycontroller.NewRequestValidator(),
 		httpResponse,
 		familyCreateUC,
 		familyGetUC,
 		familyMemberCreateUC,
 		familyMemberListUC,
 	)
+	taskController := taskcontroller.NewController(taskAddUC, httpResponse, taskcontroller.NewRequestValidator())
 	authMiddleware := authmiddleware.New(tokenGenerator, userRepository, httpResponse)
 
 	healthRepository := healthrepository.NewRepository(postgresConn)
-	router := httprouter.New(healthRepository, authController, userController, familyController, authMiddleware)
+	publicControllers := []httprouter.Controller{userController, familyController, taskController}
+	router := httprouter.New(healthRepository, authController, publicControllers, authMiddleware)
 	server := NewHTTPServer(cfg, router)
 
 	RunHTTPServer(ctx, server, cfg.HTTP.ShutdownTimeout)

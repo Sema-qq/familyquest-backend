@@ -8,4 +8,6 @@ const (
 
 	PathFamily        = "/api/v1/family"
 	PathFamilyMembers = "/api/v1/family/members"
+
+	PathTaskAdd = "/api/v1/task/add"
 )
