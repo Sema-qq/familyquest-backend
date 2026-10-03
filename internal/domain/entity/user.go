@@ -17,10 +17,14 @@ func (id UserID) UUID() uuid.UUID {
 }
 
 type User struct {
-	ID           UserID
-	Login        string
+	ID          UserID
+	Login       string
+	DisplayName string
+}
+
+type UserCredentials struct {
+	User         User
 	PasswordHash string
-	DisplayName  string
 }
 
 type UserCreate struct {

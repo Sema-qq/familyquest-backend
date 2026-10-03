@@ -27,13 +27,13 @@ type Responder interface {
 }
 
 type Validator interface {
-	validateRegister(req registerRequest) error
-	validateLogin(req loginRequest) error
+	ValidateRegister(req registerRequest) error
+	ValidateLogin(req loginRequest) error
 }
 
 type Controller struct {
-	entityMapper   *toEntityMapper
-	protocolMapper *toProtocolMapper
+	entityMapper   toEntityMapper
+	protocolMapper toProtocolMapper
 	validator      Validator
 	response       Responder
 	userCreator    UserCreator
@@ -68,7 +68,7 @@ func (c *Controller) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.validator.validateRegister(req); err != nil {
+	if err := c.validator.ValidateRegister(req); err != nil {
 		c.response.Error(w, domain.ValidationError(err.Error()))
 		return
 	}
@@ -89,7 +89,7 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.validator.validateLogin(req); err != nil {
+	if err := c.validator.ValidateLogin(req); err != nil {
 		c.response.Error(w, domain.ValidationError(err.Error()))
 		return
 	}

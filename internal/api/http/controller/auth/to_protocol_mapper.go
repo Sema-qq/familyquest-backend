@@ -8,11 +8,11 @@ import (
 
 type toProtocolMapper struct{}
 
-func newToProtocolMapper() *toProtocolMapper {
-	return &toProtocolMapper{}
+func newToProtocolMapper() toProtocolMapper {
+	return toProtocolMapper{}
 }
 
-func (m *toProtocolMapper) mapRegisterResponse(user entity.User) registerResponse {
+func (m toProtocolMapper) mapRegisterResponse(user entity.User) registerResponse {
 	return registerResponse{
 		ID:          user.ID.String(),
 		Login:       user.Login,
@@ -20,7 +20,7 @@ func (m *toProtocolMapper) mapRegisterResponse(user entity.User) registerRespons
 	}
 }
 
-func (m *toProtocolMapper) mapLoginResponse(result entity.AuthResult) loginResponse {
+func (m toProtocolMapper) mapLoginResponse(result entity.AuthResult) loginResponse {
 	return loginResponse{
 		Token:     result.AccessToken,
 		ExpiresAt: result.ExpiresAt.Format(time.RFC3339),

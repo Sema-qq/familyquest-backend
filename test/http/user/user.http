@@ -1,0 +1,4 @@
+### Свой профиль
+GET {{host}}/api/v1/users/me
+Accept: application/json
+Authorization: Bearer {{token}}

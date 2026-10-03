@@ -15,9 +15,32 @@ type AuthController interface {
 	RegisterRoutes(router *mux.Router)
 }
 
-func New(healthRepository HealthRepository, authController AuthController) http.Handler {
+type UserController interface {
+	RegisterRoutes(router *mux.Router)
+}
+
+type FamilyController interface {
+	RegisterRoutes(router *mux.Router)
+}
+
+type AuthMiddleware interface {
+	Check(next http.Handler) http.Handler
+}
+
+func New(
+	healthRepository HealthRepository,
+	authController AuthController,
+	userController UserController,
+	familyController FamilyController,
+	authMiddleware AuthMiddleware,
+) http.Handler {
 	r := mux.NewRouter()
 	authController.RegisterRoutes(r)
+
+	protectedRouter := r.NewRoute().Subrouter()
+	protectedRouter.Use(authMiddleware.Check)
+	userController.RegisterRoutes(protectedRouter)
+	familyController.RegisterRoutes(protectedRouter)
 
 	r.HandleFunc("/api/v1/hello", hello).Methods(http.MethodGet)
 	r.HandleFunc("/app/health", health).Methods(http.MethodGet)

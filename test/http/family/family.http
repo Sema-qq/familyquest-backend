@@ -1,0 +1,59 @@
+### Создать семью
+POST {{host}}/api/v1/family
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Семья Ивановых",
+  "timezone": "Asia/Yekaterinburg"
+}
+
+### Получить текущую семью
+GET {{host}}/api/v1/family
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Добавить ребёнка
+POST {{host}}/api/v1/family/members
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "login": "child@example.com",
+  "password": "password123",
+  "display_name": "Арсений"
+}
+
+### Список участников
+GET {{host}}/api/v1/family/members
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Вход ребёнка
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "login": "child@example.com",
+  "password": "password123"
+}
+
+### Ребёнок видит семью
+GET {{host}}/api/v1/family
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Ребёнок не может добавить участника
+POST {{host}}/api/v1/family/members
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "login": "second-child@example.com",
+  "password": "password123",
+  "display_name": "Второй ребёнок"
+}

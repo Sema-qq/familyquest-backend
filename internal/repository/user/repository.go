@@ -20,6 +20,9 @@ var createSQL string
 //go:embed sqls/get_by_login.sql
 var getByLoginSQL string
 
+//go:embed sqls/get_by_id.sql
+var getByIDSQL string
+
 type Repository struct {
 	db db.Conn
 }
@@ -45,20 +48,33 @@ func (r *Repository) Create(ctx context.Context, user entity.UserCreate) error {
 			return domain.AlreadyExists("user already exists")
 		}
 
-		return fmt.Errorf("create user: %w", err)
+		return fmt.Errorf("failed create user: %w", err)
 	}
 
 	return nil
 }
 
-func (r *Repository) GetByLogin(ctx context.Context, login string) (entity.User, error) {
-	user, err := db.QueryRow[userDTO](ctx, r.db, getByLoginSQL, login)
+func (r *Repository) GetByLogin(ctx context.Context, login string) (entity.UserCredentials, error) {
+	user, err := db.QueryRow[userCredentials](ctx, r.db, getByLoginSQL, login)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.UserCredentials{}, domain.NotFound("user not found")
+		}
+
+		return entity.UserCredentials{}, fmt.Errorf("failed get user by login: %w", err)
+	}
+
+	return user.toEntity(), nil
+}
+
+func (r *Repository) GetByID(ctx context.Context, id entity.UserID) (entity.User, error) {
+	user, err := db.QueryRow[user](ctx, r.db, getByIDSQL, id.UUID())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, domain.NotFound("user not found")
 		}
 
-		return entity.User{}, fmt.Errorf("get user by login: %w", err)
+		return entity.User{}, fmt.Errorf("failed get user by id: %w", err)
 	}
 
 	return user.toEntity(), nil

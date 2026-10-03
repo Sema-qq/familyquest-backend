@@ -8,11 +8,11 @@ import (
 
 type toEntityMapper struct{}
 
-func newToEntityMapper() *toEntityMapper {
-	return &toEntityMapper{}
+func newToEntityMapper() toEntityMapper {
+	return toEntityMapper{}
 }
 
-func (m *toEntityMapper) mapUserCreateRequest(req registerRequest) entity.UserCreateRequest {
+func (m toEntityMapper) mapUserCreateRequest(req registerRequest) entity.UserCreateRequest {
 	return entity.UserCreateRequest{
 		Login:       strings.TrimSpace(req.Login),
 		Password:    req.Password,
@@ -20,7 +20,7 @@ func (m *toEntityMapper) mapUserCreateRequest(req registerRequest) entity.UserCr
 	}
 }
 
-func (m *toEntityMapper) mapAuthRequest(req loginRequest) entity.AuthRequest {
+func (m toEntityMapper) mapAuthRequest(req loginRequest) entity.AuthRequest {
 	return entity.AuthRequest{
 		Login:    strings.TrimSpace(req.Login),
 		Password: req.Password,

@@ -55,9 +55,23 @@ func AuthorizationError() error {
 	}
 }
 
+func ForbiddenError() error {
+	return &Error{
+		Kind:    KindForbidden,
+		Message: "forbidden",
+	}
+}
+
 func NotFound(message string) error {
 	return &Error{
 		Kind:    KindNotFound,
+		Message: message,
+	}
+}
+
+func Conflict(message string) error {
+	return &Error{
+		Kind:    KindConflict,
 		Message: message,
 	}
 }

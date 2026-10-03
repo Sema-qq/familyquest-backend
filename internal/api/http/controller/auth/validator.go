@@ -11,7 +11,7 @@ func NewRequestValidator() *RequestValidator {
 	return &RequestValidator{}
 }
 
-func (v *RequestValidator) validateRegister(req registerRequest) error {
+func (v *RequestValidator) ValidateRegister(req registerRequest) error {
 	if strings.TrimSpace(req.Login) == "" {
 		return errors.New(`the "login" field is required`)
 	}
@@ -25,7 +25,7 @@ func (v *RequestValidator) validateRegister(req registerRequest) error {
 	return nil
 }
 
-func (v *RequestValidator) validateLogin(req loginRequest) error {
+func (v *RequestValidator) ValidateLogin(req loginRequest) error {
 	if strings.TrimSpace(req.Login) == "" {
 		return errors.New(`the "login" field is required`)
 	}

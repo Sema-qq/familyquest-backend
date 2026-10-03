@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository interface {
-	GetByLogin(ctx context.Context, login string) (entity.User, error)
+	GetByLogin(ctx context.Context, login string) (entity.UserCredentials, error)
 }
 
 type PasswordHasher interface {
@@ -47,23 +47,23 @@ func New(
 }
 
 func (u *UseCase) Login(ctx context.Context, req entity.AuthRequest) (entity.AuthResult, error) {
-	user, err := u.userRepository.GetByLogin(ctx, req.Login)
+	credentials, err := u.userRepository.GetByLogin(ctx, req.Login)
 	if err != nil {
+		return entity.AuthResult{}, fmt.Errorf("can't get user by login: %w", err)
+	}
+
+	if !u.passwordHasher.Compare(credentials.PasswordHash, req.Password) {
 		return entity.AuthResult{}, domain.AuthorizationError()
 	}
 
-	if !u.passwordHasher.Compare(user.PasswordHash, req.Password) {
-		return entity.AuthResult{}, domain.AuthorizationError()
-	}
-
-	accessToken, expiresAt, err := u.tokenGenerator.Generate(user, u.timeProvider.Now())
+	accessToken, expiresAt, err := u.tokenGenerator.Generate(credentials.User, u.timeProvider.Now())
 	if err != nil {
-		return entity.AuthResult{}, fmt.Errorf("generate access token: %w", err)
+		return entity.AuthResult{}, fmt.Errorf("can't generate access token: %w", err)
 	}
 
 	return entity.AuthResult{
 		AccessToken: accessToken,
 		ExpiresAt:   expiresAt,
-		User:        user,
+		User:        credentials.User,
 	}, nil
 }

@@ -27,12 +27,12 @@ func NewHasher() *Hasher {
 func (h *Hasher) Hash(password string) (string, error) {
 	salt := make([]byte, saltSize)
 	if _, err := rand.Read(salt); err != nil {
-		return "", fmt.Errorf("generate salt: %w", err)
+		return "", fmt.Errorf("can't generate salt: %w", err)
 	}
 
 	key, err := pbkdf2.Key(sha256.New, password, salt, iterations, keySize)
 	if err != nil {
-		return "", fmt.Errorf("derive key: %w", err)
+		return "", fmt.Errorf("can't derive key: %w", err)
 	}
 
 	return strings.Join([]string{
