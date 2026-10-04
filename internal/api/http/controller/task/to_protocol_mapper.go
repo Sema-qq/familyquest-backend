@@ -16,3 +16,14 @@ func (m toProtocolMapper) mapAddResponse(item entity.Task) addResponse {
 		Points:      item.Points,
 	}
 }
+
+func (m toProtocolMapper) mapTasksResponse(tasks []entity.Task) tasksResponse {
+	items := make([]addResponse, len(tasks))
+	for i, item := range tasks {
+		items[i] = m.mapAddResponse(item)
+	}
+
+	return tasksResponse{
+		Items: items,
+	}
+}

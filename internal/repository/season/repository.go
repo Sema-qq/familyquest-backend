@@ -22,6 +22,9 @@ var getByIDSQL string
 //go:embed sqls/list_by_family.sql
 var listByFamilySQL string
 
+//go:embed sqls/update.sql
+var updateSQL string
+
 type Repository struct {
 	db db.Conn
 }
@@ -70,4 +73,28 @@ func (r *Repository) ListByFamily(ctx context.Context, familyID entity.FamilyID)
 	}
 
 	return seasonList(seasons).toEntities(), nil
+}
+
+func (r *Repository) Update(ctx context.Context, season entity.SeasonUpdate) error {
+	var status any
+	if season.Status.Valid {
+		status = string(season.Status.V)
+	}
+	var completedAt any
+	if season.CompletedAt.Valid {
+		completedAt = season.CompletedAt.V
+	}
+
+	_, err := r.db.Exec(
+		ctx,
+		updateSQL,
+		season.ID.UUID(),
+		status,
+		completedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed update season: %w", err)
+	}
+
+	return nil
 }

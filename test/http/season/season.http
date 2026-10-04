@@ -41,3 +41,98 @@ Authorization: Bearer {{token}}
 GET {{host}}/api/v1/seasons/{{seasonId}}
 Accept: application/json
 Authorization: Bearer {{childToken}}
+
+### Родитель добавляет задание в сезон по датам
+POST {{host}}/api/v1/seasons/{{seasonId}}/tasks
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "task_id": "{{taskId}}",
+  "participation_mode": "each_child",
+  "schedule": {
+    "type": "dates",
+    "dates": ["2026-10-05", "2026-10-06"]
+  }
+}
+
+### Родитель добавляет задание в сезон квотой
+POST {{host}}/api/v1/seasons/{{seasonId}}/tasks
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "task_id": "{{taskId}}",
+  "participation_mode": "shared",
+  "schedule": {
+    "type": "quota",
+    "count": 3
+  }
+}
+
+### Ребёнок не может добавить задание в сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/tasks
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "task_id": "{{taskId}}",
+  "participation_mode": "each_child",
+  "schedule": {
+    "type": "quota",
+    "count": 1
+  }
+}
+
+### Повторное добавление того же задания в сезон вернёт 409
+POST {{host}}/api/v1/seasons/{{seasonId}}/tasks
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "task_id": "{{taskId}}",
+  "participation_mode": "each_child",
+  "schedule": {
+    "type": "quota",
+    "count": 1
+  }
+}
+
+### Родитель активирует сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/activate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Повторная активация активного сезона вернёт текущий сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/activate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок не может активировать сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/activate
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Родитель смотрит результаты сезона
+GET {{host}}/api/v1/seasons/{{seasonId}}/results
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок смотрит свои результаты сезона
+GET {{host}}/api/v1/seasons/{{seasonId}}/results
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Родитель завершает сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/complete
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок не может завершить сезон
+POST {{host}}/api/v1/seasons/{{seasonId}}/complete
+Accept: application/json
+Authorization: Bearer {{childToken}}

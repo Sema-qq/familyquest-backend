@@ -10,6 +10,16 @@ Authorization: Bearer {{token}}
   "points": 10
 }
 
+### Родитель получает список заданий семьи
+GET {{host}}/api/v1/tasks
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок получает список заданий семьи
+GET {{host}}/api/v1/tasks
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
 ### Родитель создаёт задание без описания
 POST {{host}}/api/v1/task/add
 Content-Type: application/json

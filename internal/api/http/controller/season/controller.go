@@ -24,7 +24,23 @@ type SeasonLister interface {
 }
 
 type SeasonGetter interface {
-	Get(ctx context.Context, userID entity.UserID, seasonID entity.SeasonID) (entity.Season, error)
+	Get(ctx context.Context, userID entity.UserID, seasonID entity.SeasonID) (entity.SeasonDetail, error)
+}
+
+type SeasonTaskAdder interface {
+	Add(ctx context.Context, req entity.SeasonTaskAddRequest) (entity.SeasonTask, error)
+}
+
+type SeasonActivator interface {
+	Activate(ctx context.Context, userID entity.UserID, seasonID entity.SeasonID) (entity.Season, error)
+}
+
+type SeasonCompleter interface {
+	Complete(ctx context.Context, userID entity.UserID, seasonID entity.SeasonID) (entity.Season, error)
+}
+
+type SeasonResultGetter interface {
+	Get(ctx context.Context, userID entity.UserID, seasonID entity.SeasonID) ([]entity.SeasonResult, error)
 }
 
 type Responder interface {
@@ -34,39 +50,56 @@ type Responder interface {
 
 type Validator interface {
 	ValidateCreate(req createRequest) error
+	ValidateAddTask(req addTaskRequest) error
 }
 
 type Controller struct {
-	seasonCreator    SeasonCreator
-	seasonLister     SeasonLister
-	seasonGetter     SeasonGetter
-	responder        Responder
-	validator        Validator
-	toEntityMapper   toEntityMapper
-	toProtocolMapper toProtocolMapper
+	seasonCreator      SeasonCreator
+	seasonLister       SeasonLister
+	seasonGetter       SeasonGetter
+	seasonTaskAdder    SeasonTaskAdder
+	seasonActivator    SeasonActivator
+	seasonCompleter    SeasonCompleter
+	seasonResultGetter SeasonResultGetter
+	responder          Responder
+	validator          Validator
+	toEntityMapper     toEntityMapper
+	toProtocolMapper   toProtocolMapper
 }
 
 func NewController(
 	seasonCreator SeasonCreator,
 	seasonLister SeasonLister,
 	seasonGetter SeasonGetter,
+	seasonTaskAdder SeasonTaskAdder,
+	seasonActivator SeasonActivator,
+	seasonCompleter SeasonCompleter,
+	seasonResultGetter SeasonResultGetter,
 	responder Responder,
 	validator Validator,
 ) *Controller {
 	return &Controller{
-		seasonCreator:    seasonCreator,
-		seasonLister:     seasonLister,
-		seasonGetter:     seasonGetter,
-		responder:        responder,
-		validator:        validator,
-		toEntityMapper:   newToEntityMapper(),
-		toProtocolMapper: newToProtocolMapper(),
+		seasonCreator:      seasonCreator,
+		seasonLister:       seasonLister,
+		seasonGetter:       seasonGetter,
+		seasonTaskAdder:    seasonTaskAdder,
+		seasonActivator:    seasonActivator,
+		seasonCompleter:    seasonCompleter,
+		seasonResultGetter: seasonResultGetter,
+		responder:          responder,
+		validator:          validator,
+		toEntityMapper:     newToEntityMapper(),
+		toProtocolMapper:   newToProtocolMapper(),
 	}
 }
 
 func (c *Controller) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc(controller.PathSeasons, c.create).Methods(http.MethodPost)
 	router.HandleFunc(controller.PathSeasons, c.list).Methods(http.MethodGet)
+	router.HandleFunc(controller.PathSeasonTasks, c.addTask).Methods(http.MethodPost)
+	router.HandleFunc(controller.PathSeasonActivate, c.activate).Methods(http.MethodPost)
+	router.HandleFunc(controller.PathSeasonComplete, c.complete).Methods(http.MethodPost)
+	router.HandleFunc(controller.PathSeasonResults, c.results).Methods(http.MethodGet)
 	router.HandleFunc(controller.PathSeason, c.get).Methods(http.MethodGet)
 }
 
@@ -133,6 +166,105 @@ func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.responder.Success(w, http.StatusOK, c.toProtocolMapper.mapSeasonDetailResponse(season))
+}
+
+func (c *Controller) addTask(w http.ResponseWriter, r *http.Request) {
+	currentUser, ok := httpcontext.UserFromRequest(r)
+	if !ok {
+		c.responder.Error(w, domain.AuthorizationError())
+		return
+	}
+
+	seasonID, err := parseSeasonID(mux.Vars(r)["season_id"])
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	var req addTaskRequest
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.responder.Error(w, domain.ValidationError(fmt.Sprintf("can't unmarshal request: %v", err)))
+		return
+	}
+
+	if err = c.validator.ValidateAddTask(req); err != nil {
+		c.responder.Error(w, domain.ValidationError(err.Error()))
+		return
+	}
+
+	seasonTask, err := c.seasonTaskAdder.Add(r.Context(), c.toEntityMapper.mapAddTaskRequest(req, currentUser.ID, seasonID))
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	c.responder.Success(w, http.StatusCreated, c.toProtocolMapper.mapSeasonTaskResponse(seasonTask))
+}
+
+func (c *Controller) activate(w http.ResponseWriter, r *http.Request) {
+	currentUser, ok := httpcontext.UserFromRequest(r)
+	if !ok {
+		c.responder.Error(w, domain.AuthorizationError())
+		return
+	}
+
+	seasonID, err := parseSeasonID(mux.Vars(r)["season_id"])
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	season, err := c.seasonActivator.Activate(r.Context(), currentUser.ID, seasonID)
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	c.responder.Success(w, http.StatusOK, c.toProtocolMapper.mapSeasonResponse(season))
+}
+
+func (c *Controller) complete(w http.ResponseWriter, r *http.Request) {
+	currentUser, ok := httpcontext.UserFromRequest(r)
+	if !ok {
+		c.responder.Error(w, domain.AuthorizationError())
+		return
+	}
+
+	seasonID, err := parseSeasonID(mux.Vars(r)["season_id"])
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	season, err := c.seasonCompleter.Complete(r.Context(), currentUser.ID, seasonID)
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	c.responder.Success(w, http.StatusOK, c.toProtocolMapper.mapSeasonResponse(season))
+}
+
+func (c *Controller) results(w http.ResponseWriter, r *http.Request) {
+	currentUser, ok := httpcontext.UserFromRequest(r)
+	if !ok {
+		c.responder.Error(w, domain.AuthorizationError())
+		return
+	}
+
+	seasonID, err := parseSeasonID(mux.Vars(r)["season_id"])
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	results, err := c.seasonResultGetter.Get(r.Context(), currentUser.ID, seasonID)
+	if err != nil {
+		c.responder.Error(w, err)
+		return
+	}
+
+	c.responder.Success(w, http.StatusOK, c.toProtocolMapper.mapResultsResponse(results))
 }
 
 func parseSeasonID(value string) (entity.SeasonID, error) {

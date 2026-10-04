@@ -1,0 +1,67 @@
+### Ребёнок отправляет выполнение задания сезона
+POST {{host}}/api/v1/season-tasks/{{seasonTaskId}}/submit
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "performed_on": "2026-10-05",
+  "comment": "Сделал"
+}
+
+### Родитель не может отправить выполнение
+POST {{host}}/api/v1/season-tasks/{{seasonTaskId}}/submit
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "performed_on": "2026-10-05",
+  "comment": "Проверка запрета"
+}
+
+### Повторная отправка при отсутствии доступного слота вернёт 409
+POST {{host}}/api/v1/season-tasks/{{seasonTaskId}}/submit
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "performed_on": "2026-10-05",
+  "comment": "Ещё раз"
+}
+
+### Родитель видит все выполнения сезона
+GET {{host}}/api/v1/seasons/{{seasonId}}/completions
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Родитель фильтрует submitted выполнения
+GET {{host}}/api/v1/seasons/{{seasonId}}/completions?status=submitted
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок видит только свои выполнения сезона
+GET {{host}}/api/v1/seasons/{{seasonId}}/completions
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Родитель подтверждает выполнение
+POST {{host}}/api/v1/task-completions/{{completionId}}/approve
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок не может подтверждать выполнение
+POST {{host}}/api/v1/task-completions/{{completionId}}/approve
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Родитель отклоняет выполнение
+POST {{host}}/api/v1/task-completions/{{completionId}}/reject
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "comment": "Нужно переделать"
+}

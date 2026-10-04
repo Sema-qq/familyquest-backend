@@ -1,0 +1,1042 @@
+openapi: 3.0.3
+info:
+  title: FamilyQuest API
+  version: 0.1.0
+  description: REST API сервера управления детскими заданиями, сезонами и достижениями.
+servers:
+  - url: http://localhost:8080
+    description: Local API server
+tags:
+  - name: Auth
+  - name: Users
+  - name: Family
+  - name: Tasks
+  - name: Seasons
+  - name: TaskCompletions
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация первого родителя
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Вход по логину и паролю
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: JWT выдан
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Получение своего профиля
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Профиль текущего пользователя
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/family:
+    post:
+      tags: [Family]
+      summary: Создание семьи
+      operationId: createFamily
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFamilyRequest"
+      responses:
+        "201":
+          description: Семья создана
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Family"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    get:
+      tags: [Family]
+      summary: Получение текущей семьи
+      operationId: getFamily
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Текущая семья пользователя
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Family"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/family/members:
+    post:
+      tags: [Family]
+      summary: Создание ребёнка в текущей семье
+      operationId: createFamilyMember
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFamilyMemberRequest"
+      responses:
+        "201":
+          description: Ребёнок создан
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FamilyMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    get:
+      tags: [Family]
+      summary: Список участников текущей семьи
+      operationId: listFamilyMembers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Участники семьи
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FamilyMembersResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/task/add:
+    post:
+      tags: [Tasks]
+      summary: Создание базового задания
+      operationId: addTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddTaskRequest"
+      responses:
+        "201":
+          description: Задание создано
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v1/tasks:
+    get:
+      tags: [Tasks]
+      summary: Список базовых заданий семьи
+      operationId: listTasks
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Задания семьи
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TasksResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/seasons:
+    post:
+      tags: [Seasons]
+      summary: Создание сезона
+      operationId: createSeason
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSeasonRequest"
+      responses:
+        "201":
+          description: Сезон создан
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Season"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      tags: [Seasons]
+      summary: Список сезонов текущей семьи
+      operationId: listSeasons
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Сезоны семьи
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SeasonsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/seasons/{season_id}:
+    get:
+      tags: [Seasons]
+      summary: Детальная информация о сезоне
+      operationId: getSeason
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+      responses:
+        "200":
+          description: Сезон с задачами, слотами и выполнениями
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SeasonDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/seasons/{season_id}/tasks:
+    post:
+      tags: [Seasons]
+      summary: Добавление задания в сезон
+      operationId: addSeasonTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSeasonTaskRequest"
+            examples:
+              dates:
+                value:
+                  task_id: "019a0000-0000-7000-8000-000000000001"
+                  participation_mode: each_child
+                  schedule:
+                    type: dates
+                    dates: ["2026-10-05", "2026-10-06"]
+              quota:
+                value:
+                  task_id: "019a0000-0000-7000-8000-000000000001"
+                  participation_mode: shared
+                  schedule:
+                    type: quota
+                    count: 3
+      responses:
+        "201":
+          description: Задание добавлено в сезон
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SeasonTask"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/seasons/{season_id}/activate:
+    post:
+      tags: [Seasons]
+      summary: Активация сезона
+      operationId: activateSeason
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+      responses:
+        "200":
+          description: Сезон активирован
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Season"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/seasons/{season_id}/complete:
+    post:
+      tags: [Seasons]
+      summary: Завершение сезона
+      operationId: completeSeason
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+      responses:
+        "200":
+          description: Сезон завершён
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Season"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/seasons/{season_id}/results:
+    get:
+      tags: [Seasons]
+      summary: Результаты сезона
+      operationId: getSeasonResults
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+      responses:
+        "200":
+          description: Баллы и подтверждённые выполнения по детям
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SeasonResultsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/seasons/{season_id}/completions:
+    get:
+      tags: [TaskCompletions]
+      summary: Список выполнений сезона
+      operationId: listTaskCompletions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonID"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/TaskCompletionStatus"
+      responses:
+        "200":
+          description: Выполнения сезона
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaskCompletionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/season-tasks/{season_task_id}/submit:
+    post:
+      tags: [TaskCompletions]
+      summary: Отправка выполнения задания ребёнком
+      operationId: submitTaskCompletion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SeasonTaskID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitTaskCompletionRequest"
+      responses:
+        "200":
+          description: Выполнение отправлено
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaskCompletion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/task-completions/{completion_id}/approve:
+    post:
+      tags: [TaskCompletions]
+      summary: Подтверждение выполнения родителем
+      operationId: approveTaskCompletion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CompletionID"
+      responses:
+        "200":
+          description: Выполнение подтверждено
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaskCompletion"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/task-completions/{completion_id}/reject:
+    post:
+      tags: [TaskCompletions]
+      summary: Отклонение выполнения родителем
+      operationId: rejectTaskCompletion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CompletionID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectTaskCompletionRequest"
+      responses:
+        "200":
+          description: Выполнение отклонено
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaskCompletion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    SeasonID:
+      name: season_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SeasonTaskID:
+      name: season_task_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CompletionID:
+      name: completion_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Ошибка авторизации
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Конфликт бизнес-правила
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [data]
+      properties:
+        data: {}
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorData"
+    ErrorData:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Некорректный запрос
+    RegisterRequest:
+      type: object
+      required: [login, password, display_name]
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+          format: password
+        display_name:
+          type: string
+    LoginRequest:
+      type: object
+      required: [login, password]
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      required: [token, expires_at]
+      properties:
+        token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+    User:
+      type: object
+      required: [id, login, display_name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        display_name:
+          type: string
+    FamilyRole:
+      type: string
+      enum: [parent, child]
+    CreateFamilyRequest:
+      type: object
+      required: [name, timezone]
+      properties:
+        name:
+          type: string
+        timezone:
+          type: string
+          example: Asia/Yekaterinburg
+    Family:
+      type: object
+      required: [id, name, timezone, owner_id, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        timezone:
+          type: string
+        owner_id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/FamilyRole"
+    CreateFamilyMemberRequest:
+      type: object
+      required: [login, password, display_name]
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+          format: password
+        display_name:
+          type: string
+    FamilyMember:
+      type: object
+      required: [id, user_id, login, display_name, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        display_name:
+          type: string
+        role:
+          $ref: "#/components/schemas/FamilyRole"
+    FamilyMembersResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyMember"
+    AddTaskRequest:
+      type: object
+      required: [title, points]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        points:
+          type: integer
+          format: int64
+          minimum: 0
+    Task:
+      type: object
+      required: [id, title, description, points]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        points:
+          type: integer
+          format: int64
+    TasksResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+    SeasonStatus:
+      type: string
+      enum: [draft, active, completed]
+    CreateSeasonRequest:
+      type: object
+      required: [title, starts_at, ends_at]
+      properties:
+        title:
+          type: string
+        starts_at:
+          type: string
+          format: date
+        ends_at:
+          type: string
+          format: date
+    Season:
+      type: object
+      required: [id, title, starts_at, ends_at, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        starts_at:
+          type: string
+          format: date
+        ends_at:
+          type: string
+          format: date
+        status:
+          $ref: "#/components/schemas/SeasonStatus"
+    SeasonsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Season"
+    SeasonDetail:
+      allOf:
+        - $ref: "#/components/schemas/Season"
+        - type: object
+          required: [tasks]
+          properties:
+            tasks:
+              type: array
+              items:
+                $ref: "#/components/schemas/SeasonTask"
+    ParticipationMode:
+      type: string
+      enum: [each_child, shared]
+    AddSeasonTaskRequest:
+      type: object
+      required: [task_id, participation_mode, schedule]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        participation_mode:
+          $ref: "#/components/schemas/ParticipationMode"
+        schedule:
+          oneOf:
+            - $ref: "#/components/schemas/DatesSchedule"
+            - $ref: "#/components/schemas/QuotaSchedule"
+    DatesSchedule:
+      type: object
+      required: [type, dates]
+      properties:
+        type:
+          type: string
+          enum: [dates]
+        dates:
+          type: array
+          items:
+            type: string
+            format: date
+    QuotaSchedule:
+      type: object
+      required: [type, count]
+      properties:
+        type:
+          type: string
+          enum: [quota]
+        count:
+          type: integer
+          format: int64
+          minimum: 1
+    SeasonTask:
+      type: object
+      required: [id, task_id, title, description, points, participation_mode, slots]
+      properties:
+        id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        points:
+          type: integer
+          format: int64
+        participation_mode:
+          $ref: "#/components/schemas/ParticipationMode"
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonTaskSlot"
+    SeasonTaskSlot:
+      type: object
+      required: [id, position, available_from, available_until, completions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+          format: int64
+        available_from:
+          type: string
+          format: date
+        available_until:
+          type: string
+          format: date
+        completions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskCompletion"
+    TaskCompletionStatus:
+      type: string
+      enum: [submitted, approved, rejected]
+    SubmitTaskCompletionRequest:
+      type: object
+      required: [performed_on]
+      properties:
+        performed_on:
+          type: string
+          format: date
+        comment:
+          type: string
+    RejectTaskCompletionRequest:
+      type: object
+      required: [comment]
+      properties:
+        comment:
+          type: string
+    TaskCompletion:
+      type: object
+      required:
+        - id
+        - member_id
+        - slot_id
+        - season_task_id
+        - performed_on
+        - status
+        - child_comment
+        - parent_comment
+      properties:
+        id:
+          type: string
+          format: uuid
+        member_id:
+          type: string
+          format: uuid
+        slot_id:
+          type: string
+          format: uuid
+        season_task_id:
+          type: string
+          format: uuid
+        performed_on:
+          type: string
+          format: date
+        status:
+          $ref: "#/components/schemas/TaskCompletionStatus"
+        child_comment:
+          type: string
+        parent_comment:
+          type: string
+        reviewed_by:
+          type: string
+          format: uuid
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+    TaskCompletionView:
+      allOf:
+        - $ref: "#/components/schemas/TaskCompletion"
+        - type: object
+          required: [display_name, task_title, points]
+          properties:
+            display_name:
+              type: string
+            task_title:
+              type: string
+            points:
+              type: integer
+              format: int64
+    TaskCompletionsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskCompletionView"
+    SeasonResult:
+      type: object
+      required: [member_id, display_name, approved_count, points]
+      properties:
+        member_id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        approved_count:
+          type: integer
+          format: int64
+        points:
+          type: integer
+          format: int64
+    SeasonResultsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonResult"

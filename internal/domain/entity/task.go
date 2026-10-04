@@ -36,3 +36,10 @@ type TaskAddRequest struct {
 	Description string
 	Points      int64
 }
+
+type TaskParticipationMode string
+
+const (
+	TaskParticipationModeEachChild TaskParticipationMode = "each_child"
+	TaskParticipationModeShared    TaskParticipationMode = "shared"
+)

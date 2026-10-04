@@ -12,3 +12,7 @@ type addResponse struct {
 	Description string `json:"description"`
 	Points      int64  `json:"points"`
 }
+
+type tasksResponse struct {
+	Items []addResponse `json:"items"`
+}

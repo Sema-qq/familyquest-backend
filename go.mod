@@ -5,6 +5,7 @@ go 1.26.6
 require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
+	github.com/guregu/null/v6 v6.0.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/sethvargo/go-envconfig v1.3.0
 )
