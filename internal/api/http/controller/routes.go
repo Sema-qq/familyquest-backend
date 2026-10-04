@@ -10,4 +10,7 @@ const (
 	PathFamilyMembers = "/api/v1/family/members"
 
 	PathTaskAdd = "/api/v1/task/add"
+
+	PathSeasons = "/api/v1/seasons"
+	PathSeason  = "/api/v1/seasons/{season_id}"
 )

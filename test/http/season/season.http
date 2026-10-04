@@ -1,0 +1,43 @@
+### Родитель создаёт сезон
+POST {{host}}/api/v1/seasons
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Октябрьский сезон",
+  "starts_at": "2026-10-05",
+  "ends_at": "2026-10-18"
+}
+
+### Ребёнок не может создать сезон
+POST {{host}}/api/v1/seasons
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+{
+  "title": "Детский сезон",
+  "starts_at": "2026-10-05",
+  "ends_at": "2026-10-18"
+}
+
+### Родитель получает список сезонов
+GET {{host}}/api/v1/seasons
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок получает список сезонов
+GET {{host}}/api/v1/seasons
+Accept: application/json
+Authorization: Bearer {{childToken}}
+
+### Родитель получает сезон
+GET {{host}}/api/v1/seasons/{{seasonId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Ребёнок получает сезон
+GET {{host}}/api/v1/seasons/{{seasonId}}
+Accept: application/json
+Authorization: Bearer {{childToken}}
